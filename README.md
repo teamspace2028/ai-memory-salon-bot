@@ -1,10 +1,10 @@
-# 💇 Strizhka AI Bot with Memory
+# 💇 AI Bot with Memory
 
-Telegram AI assistant for a hair salon (**«Стрижка»**) with **short-term** and **long-term memory**, real appointment booking, and optional Google Calendar sync.
+Telegram AI assistant for a hair salon with **short-term** and **long-term memory**, real appointment booking, and optional Google Calendar sync.
 
 Built with **aiogram 3**, **OpenAI** (via [ProxyAPI](https://proxyapi.ru) or direct API), **ChromaDB** (RAG), and **SQLite**.
 
-This project extends the booking-focused [strizhka-ai-bot](https://github.com/nifontovoleg/strizhka-ai-bot) idea with a combined memory architecture: conversational context + document/knowledge retrieval in one bot.
+This project extends the booking-focused idea with a combined memory architecture: conversational context + document/knowledge retrieval in one bot.
 
 ---
 
