@@ -10,29 +10,18 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN", "")
 
-# OpenAI / ProxyAPI (ключ: OPENAI_API_KEY или PROXYAPI_API_KEY)
-OPENAI_API_KEY = (
-    os.getenv("OPENAI_API_KEY")
-    or os.getenv("PROXYAPI_API_KEY")
-    or ""
-)
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
+USE_GOOGLE_AI = os.getenv("USE_GOOGLE_AI", "false").lower() in ("1", "true", "yes")
 
-# ProxyAPI: https://proxyapi.ru — OpenAI без VPN, оплата в ₽
-PROXYAPI_ENABLED = os.getenv("PROXYAPI_ENABLED", "true").lower() in (
-    "1",
-    "true",
-    "yes",
-)
-PROXYAPI_BASE_URL = os.getenv(
-    "PROXYAPI_BASE_URL",
-    "https://api.proxyapi.ru/openai/v1",
-)
-# Если PROXYAPI_ENABLED — по умолчанию ProxyAPI; иначе официальный OpenAI
-# или явный OPENAI_BASE_URL
-_default_base = PROXYAPI_BASE_URL if PROXYAPI_ENABLED else None
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL") or _default_base
+if USE_GOOGLE_AI:
+    OPENAI_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+    OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    OPENAI_MODEL = os.getenv("GOOGLE_MODEL", "gemini-2.5-flash")
+    OPENAI_EMBEDDING_MODEL = os.getenv("GOOGLE_EMBEDDING_MODEL", "text-embedding-004")
+else:
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+    OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
+    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
 
 SALON_TIMEZONE = os.getenv("SALON_TIMEZONE", "Asia/Yekaterinburg")
 TZ = ZoneInfo(SALON_TIMEZONE)
@@ -88,7 +77,7 @@ def validate() -> None:
     if not BOT_TOKEN:
         missing.append("BOT_TOKEN (или TELEGRAM_BOT_TOKEN)")
     if not OPENAI_API_KEY:
-        missing.append("OPENAI_API_KEY (или PROXYAPI_API_KEY)")
+        missing.append("GOOGLE_API_KEY (если USE_GOOGLE_AI=true) или OPENAI_API_KEY")
     if missing:
         raise SystemExit(
             "Не заданы обязательные переменные окружения: "
@@ -106,8 +95,8 @@ def openai_client_kwargs() -> dict:
 
 
 def openai_endpoint_label() -> str:
-    if OPENAI_BASE_URL and "proxyapi" in OPENAI_BASE_URL.lower():
-        return f"ProxyAPI ({OPENAI_BASE_URL})"
+    if USE_GOOGLE_AI:
+        return f"Google AI Studio ({OPENAI_MODEL})"
     if OPENAI_BASE_URL:
         return OPENAI_BASE_URL
-    return "OpenAI (api.openai.com)"
+    return f"OpenAI ({OPENAI_MODEL})"
