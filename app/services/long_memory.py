@@ -24,11 +24,8 @@ def _get_client() -> chromadb.PersistentClient:
     if _client is None:
         Path(config.MEMORY_DIR).mkdir(parents=True, exist_ok=True)
         _client = chromadb.PersistentClient(path=str(config.MEMORY_DIR))
-        _ef = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=config.OPENAI_API_KEY,
-            model_name=config.OPENAI_EMBEDDING_MODEL,
-            api_base=config.OPENAI_BASE_URL,
-        )
+        # Используем локальные эмбеддинги ChromaDB, так как Google прокси не поддерживает /embeddings
+        _ef = embedding_functions.DefaultEmbeddingFunction()
     return _client
 
 

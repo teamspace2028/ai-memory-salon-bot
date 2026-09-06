@@ -323,21 +323,7 @@ async def reply(
             append_to_history(user_id, "assistant", answer)
             return answer, created, cancelled
 
-        assistant_msg: dict[str, Any] = {
-            "role": "assistant",
-            "content": msg.content or "",
-            "tool_calls": [
-                {
-                    "id": tc.id,
-                    "type": "function",
-                    "function": {
-                        "name": tc.function.name,
-                        "arguments": tc.function.arguments,
-                    },
-                }
-                for tc in msg.tool_calls
-            ],
-        }
+        assistant_msg = msg.model_dump(exclude_unset=True)
         messages.append(assistant_msg)
 
         for tc in msg.tool_calls:
