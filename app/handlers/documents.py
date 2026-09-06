@@ -12,6 +12,7 @@ from aiogram.types import Message
 from app.db import repository as db
 from app.services import long_memory
 from app.services.chat import ask_llm
+from app.services.notify import is_admin_user
 
 router = Router(name="documents")
 logger = logging.getLogger(__name__)
@@ -51,6 +52,10 @@ async def handle_photo(message: Message) -> None:
 
 @router.message(F.document)
 async def handle_document(message: Message) -> None:
+    if not message.from_user or not is_admin_user(message.from_user):
+        await message.answer("Загрузка документов доступна только администраторам.")
+        return
+
     doc = message.document
     file_name = doc.file_name or "document.txt"
     suffix = Path(file_name).suffix.lower()

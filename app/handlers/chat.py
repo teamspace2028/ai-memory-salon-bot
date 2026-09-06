@@ -21,6 +21,10 @@ async def handle_text(message: Message) -> None:
     if not text:
         return
 
+    if text.startswith("/"):
+        await message.answer("Неизвестная команда. Воспользуйтесь /help.")
+        return
+
     if text == keyboards.BTN_HOURS:
         await message.answer(kb.hours_text())
         return

@@ -38,6 +38,10 @@ async def cmd_start(message: Message) -> None:
 @router.message(Command("reset"))
 @router.message(Command("clear_short"))
 async def cmd_reset(message: Message) -> None:
+    if not message.from_user or not is_admin_user(message.from_user):
+        await message.answer("Доступ запрещен. Эта команда доступна только администраторам.")
+        return
+
     ai_assistant.clear_short_memory(message.from_user.id)
     await message.answer(
         "Диалог сброшен. Чем могу помочь?",
@@ -47,12 +51,20 @@ async def cmd_reset(message: Message) -> None:
 
 @router.message(Command("clear_long"))
 async def cmd_clear_long(message: Message) -> None:
+    if not message.from_user or not is_admin_user(message.from_user):
+        await message.answer("Доступ запрещен. Эта команда доступна только администраторам.")
+        return
+
     long_memory.clear_user_docs(message.from_user.id)
     await message.answer("Ваши загруженные документы удалены из памяти.")
 
 
 @router.message(Command("clear"))
 async def cmd_clear(message: Message) -> None:
+    if not message.from_user or not is_admin_user(message.from_user):
+        await message.answer("Доступ запрещен. Эта команда доступна только администраторам.")
+        return
+
     ai_assistant.clear_short_memory(message.from_user.id)
     long_memory.clear_user_docs(message.from_user.id)
     await message.answer(
@@ -63,6 +75,10 @@ async def cmd_clear(message: Message) -> None:
 
 @router.message(Command("status"))
 async def cmd_status(message: Message) -> None:
+    if not message.from_user or not is_admin_user(message.from_user):
+        await message.answer("Доступ запрещен. Эта команда доступна только администраторам.")
+        return
+
     user_id = message.from_user.id
     short_count = len(ai_assistant.short_memory[user_id])
     docs = long_memory.get_user_collection(user_id).count()
