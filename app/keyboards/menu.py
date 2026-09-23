@@ -11,11 +11,11 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from app import salon_data as kb
 
-BTN_SERVICES = "✂️ Услуги и цены"
-BTN_HOURS = "🕐 Часы работы"
-BTN_BOOK = "📅 Записаться"
-BTN_CONTACTS = "📍 Адрес и контакты"
-BTN_MY_BOOKINGS = "🗓 Мои записи"
+BTN_SERVICES = "✂️ Послуги та ціни"
+BTN_HOURS = "🕐 Години роботи"
+BTN_BOOK = "📅 Записатися"
+BTN_CONTACTS = "📍 Адреса та контакти"
+BTN_MY_BOOKINGS = "🗓 Мої записи"
 
 
 def main_menu() -> ReplyKeyboardMarkup:
@@ -31,7 +31,7 @@ def cancel_inline(booking_id: int) -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="❌ Отменить запись",
+                    text="❌ Скасувати запис",
                     callback_data=f"cancel:{booking_id}",
                 )
             ]
@@ -44,7 +44,7 @@ def services_inline() -> InlineKeyboardMarkup:
     for key, (name, price, _minutes) in kb.SERVICES.items():
         builder.row(
             InlineKeyboardButton(
-                text=f"{name} — {price} ₽",
+                text=f"{name} — {price} грн",
                 callback_data=f"book:{key}",
             )
         )

@@ -13,9 +13,9 @@ from app.services.notify import is_admin_user
 router = Router(name="start")
 
 GREETING = (
-    f"Здравствуйте! Я ваш помощник из салона «{kb.SALON_NAME}». "
-    "Мы предлагаем стильные и качественные стрижки для всей семьи: "
-    "мужчин, женщин и детей. Чем могу помочь?"
+    f"Вітаю! Я ваш помічник із салону «{kb.SALON_NAME}». "
+    "Ми пропонуємо стильні та якісні стрижки для всієї родини: "
+    "чоловіків, жінок та дітей. Чим можу допомогти?"
 )
 
 
@@ -30,8 +30,8 @@ async def cmd_start(message: Message) -> None:
 
     if is_admin_user(message.from_user):
         await message.answer(
-            "✅ Вы в списке администраторов.\n"
-            "Уведомления о записях и отменах будут приходить сюда."
+            "✅ Ви в списку адміністраторів.\n"
+            "Сповіщення про записи та скасування надходитимуть сюди."
         )
 
 
@@ -39,12 +39,12 @@ async def cmd_start(message: Message) -> None:
 @router.message(Command("clear_short"))
 async def cmd_reset(message: Message) -> None:
     if not message.from_user or not is_admin_user(message.from_user):
-        await message.answer("Доступ запрещен. Эта команда доступна только администраторам.")
+        await message.answer("Доступ заборонено. Ця команда доступна лише адміністраторам.")
         return
 
     ai_assistant.clear_short_memory(message.from_user.id)
     await message.answer(
-        "Диалог сброшен. Чем могу помочь?",
+        "Діалог скинуто. Чим можу допомогти?",
         reply_markup=keyboards.main_menu(),
     )
 
@@ -52,23 +52,23 @@ async def cmd_reset(message: Message) -> None:
 @router.message(Command("clear_long"))
 async def cmd_clear_long(message: Message) -> None:
     if not message.from_user or not is_admin_user(message.from_user):
-        await message.answer("Доступ запрещен. Эта команда доступна только администраторам.")
+        await message.answer("Доступ заборонено. Ця команда доступна лише адміністраторам.")
         return
 
     long_memory.clear_user_docs(message.from_user.id)
-    await message.answer("Ваши загруженные документы удалены из памяти.")
+    await message.answer("Ваші завантажені документи видалено з пам'яті.")
 
 
 @router.message(Command("clear"))
 async def cmd_clear(message: Message) -> None:
     if not message.from_user or not is_admin_user(message.from_user):
-        await message.answer("Доступ запрещен. Эта команда доступна только администраторам.")
+        await message.answer("Доступ заборонено. Ця команда доступна лише адміністраторам.")
         return
 
     ai_assistant.clear_short_memory(message.from_user.id)
     long_memory.clear_user_docs(message.from_user.id)
     await message.answer(
-        "Диалог и ваши документы очищены. База знаний салона сохранена.",
+        "Діалог та ваші документи очищено. Базу знань салону збережено.",
         reply_markup=keyboards.main_menu(),
     )
 
@@ -76,18 +76,18 @@ async def cmd_clear(message: Message) -> None:
 @router.message(Command("status"))
 async def cmd_status(message: Message) -> None:
     if not message.from_user or not is_admin_user(message.from_user):
-        await message.answer("Доступ запрещен. Эта команда доступна только администраторам.")
+        await message.answer("Доступ заборонено. Ця команда доступна лише адміністраторам.")
         return
 
     user_id = message.from_user.id
     short_count = len(ai_assistant.short_memory[user_id])
     docs = long_memory.get_user_collection(user_id).count()
     kb_count = long_memory.get_shared_kb_collection().count()
-    gcal = "вкл" if google_calendar.is_enabled() else "выкл"
+    gcal = "увімк" if google_calendar.is_enabled() else "вимк"
     await message.answer(
-        f"Короткая память: {short_count}/{config.HISTORY_LIMIT}\n"
-        f"Ваши документы: {docs} чанков\n"
-        f"База знаний салона: {kb_count} чанков\n"
+        f"Коротка пам'ять: {short_count}/{config.HISTORY_LIMIT}\n"
+        f"Ваші документи: {docs} чанків\n"
+        f"База знань салону: {kb_count} чанків\n"
         f"LLM: {config.openai_endpoint_label()}\n"
         f"Google Calendar: {gcal}"
     )
@@ -96,13 +96,13 @@ async def cmd_status(message: Message) -> None:
 @router.message(Command("help"))
 async def cmd_help(message: Message) -> None:
     await message.answer(
-        "Я помогу записаться в салон «Стрижка».\n\n"
-        "Кнопки меню: услуги, часы, запись, мои записи, контакты.\n"
-        "Можно писать свободно — подберу слоты и оформлю запись.\n"
-        "Можно прислать фото причёски — опишу стиль и подскажу услугу.\n"
-        "Можно загрузить PDF/TXT/DOCX — учту как доп. документ.\n\n"
-        "/mybookings — мои записи\n"
-        "/status — память и Google Calendar\n"
-        "/reset — сбросить диалог\n"
-        "/clear — диалог + ваши документы"
+        "Я допоможу записатися в салон «Стрижка».\n\n"
+        "Кнопки меню: послуги, години, запис, мої записи, контакти.\n"
+        "Можна писати вільно — підберу слоти та оформлю запис.\n"
+        "Можна надіслати фото зачіски — опишу стиль та підкажу послугу.\n"
+        "Можна завантажити PDF/TXT/DOCX — врахую як дод. документ.\n\n"
+        "/mybookings — мої записи\n"
+        "/status — пам'ять і Google Calendar\n"
+        "/reset — скинути діалог\n"
+        "/clear — діалог + ваші документи"
     )

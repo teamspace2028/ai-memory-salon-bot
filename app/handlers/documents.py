@@ -44,16 +44,16 @@ async def handle_photo(message: Message) -> None:
         )
         await message.answer(answer)
     except Exception:  # noqa: BLE001
-        logger.exception("Ошибка обработки фото")
+        logger.exception("Помилка обробки фото")
         await message.answer(
-            "Не удалось разобрать фото. Попробуйте ещё раз или опишите стиль словами."
+            "Не вдалося розібрати фото. Спробуйте ще раз або опишіть стиль словами."
         )
 
 
 @router.message(F.document)
 async def handle_document(message: Message) -> None:
     if not message.from_user or not is_admin_user(message.from_user):
-        await message.answer("Загрузка документов доступна только администраторам.")
+        await message.answer("Завантаження документів доступне лише адміністраторам.")
         return
 
     doc = message.document
@@ -86,15 +86,15 @@ async def handle_document(message: Message) -> None:
             )
             await message.answer(answer)
         except Exception:  # noqa: BLE001
-            logger.exception("Ошибка изображения-документа")
-            await message.answer("Не удалось разобрать изображение.")
+            logger.exception("Помилка зображення-документа")
+            await message.answer("Не вдалося розібрати зображення.")
         return
 
     if suffix not in {".pdf", ".txt", ".docx", ".doc"}:
-        await message.answer("Поддерживаются PDF, TXT, DOCX и фото (JPG/PNG).")
+        await message.answer("Підтримуються PDF, TXT, DOCX та фото (JPG/PNG).")
         return
 
-    await message.answer("Читаю документ и сохраняю в долгую память...")
+    await message.answer("Читаю документ і зберігаю в довгу пам'ять...")
     try:
         tg_file = await message.bot.get_file(doc.file_id)
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -102,16 +102,16 @@ async def handle_document(message: Message) -> None:
             await message.bot.download_file(tg_file.file_path, destination=local_path)
             text = await asyncio.to_thread(long_memory.load_document, local_path)
             if not text.strip():
-                await message.answer("Не удалось извлечь текст из файла.")
+                await message.answer("Не вдалося витягти текст з файлу.")
                 return
             chunks = await asyncio.to_thread(long_memory.split_into_chunks, text)
             saved = await asyncio.to_thread(
                 long_memory.embed_chunks, message.from_user.id, chunks, file_name
             )
         await message.answer(
-            f"Документ «{file_name}» сохранён ({saved} чанков). "
-            "Можно спрашивать по нему."
+            f"Документ «{file_name}» збережено ({saved} чанків). "
+            "Можна запитувати щодо нього."
         )
     except Exception:  # noqa: BLE001
-        logger.exception("Ошибка документа")
-        await message.answer("Не удалось обработать документ.")
+        logger.exception("Помилка документа")
+        await message.answer("Не вдалося обробити документ.")

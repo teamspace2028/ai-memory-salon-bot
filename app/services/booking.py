@@ -17,7 +17,7 @@ def _today() -> datetime:
 def parse_date(date_str: str) -> datetime | None:
     s = (date_str or "").strip().lower()
     now = _today()
-    if s in ("today", "сегодня"):
+    if s in ("today", "сегодня", "сьогодні"):
         return now
     if s in ("tomorrow", "завтра"):
         return now + timedelta(days=1)
@@ -44,8 +44,8 @@ def available_slots(date_str: str, service_name: str) -> dict[str, Any]:
         return {
             "ok": False,
             "error": (
-                "Не удалось распознать дату. "
-                "Уточните в формате ГГГГ-ММ-ДД, 'сегодня' или 'завтра'."
+                "Не вдалося розпізнати дату. "
+                "Уточніть у форматі РРРР-ММ-ДД, 'сьогодні' або 'завтра'."
             ),
         }
 
@@ -53,7 +53,7 @@ def available_slots(date_str: str, service_name: str) -> dict[str, Any]:
     if service is None:
         return {
             "ok": False,
-            "error": f"Услуга «{service_name}» не найдена.",
+            "error": f"Послугу «{service_name}» не знайдено.",
             "services": kb.services_text(),
         }
     _, _, duration = service
@@ -103,17 +103,17 @@ def create_booking(
 ) -> dict[str, Any]:
     day = parse_date(date_str)
     if day is None:
-        return {"ok": False, "error": "Не удалось распознать дату."}
+        return {"ok": False, "error": "Не вдалося розпізнати дату."}
 
     service = kb.find_service(service_name)
     if service is None:
-        return {"ok": False, "error": f"Услуга «{service_name}» не найдена."}
+        return {"ok": False, "error": f"Послугу «{service_name}» не знайдено."}
     name, price, duration = service
 
     try:
         hh, mm = map(int, time_str.strip().split(":"))
     except ValueError:
-        return {"ok": False, "error": "Не удалось распознать время. Укажите в формате ЧЧ:ММ."}
+        return {"ok": False, "error": "Не вдалося розпізнати час. Вкажіть у форматі ГГ:ХХ."}
 
     start = day.replace(hour=hh, minute=mm, second=0, microsecond=0)
     end = start + timedelta(minutes=duration)
@@ -124,7 +124,7 @@ def create_booking(
         return {
             "ok": False,
             "error": (
-                f"Время вне часов работы "
+                f"Час поза годинами роботи "
                 f"({kb.OPEN_HOUR:02d}:00-{kb.CLOSE_HOUR:02d}:00)."
             ),
         }
@@ -132,16 +132,16 @@ def create_booking(
         return {
             "ok": False,
             "error": (
-                f"Это время попадает на перерыв "
+                f"Цей час припадає на перерву "
                 f"({kb.LUNCH_START_HOUR:02d}:00-{kb.LUNCH_END_HOUR:02d}:00)."
             ),
         }
     if start < _today():
-        return {"ok": False, "error": "Нельзя записаться на прошедшее время."}
+        return {"ok": False, "error": "Не можна записатися на минулий час."}
     if db.has_overlap(start.isoformat(), end.isoformat()):
-        return {"ok": False, "error": "Это время уже занято. Выберите другой слот."}
+        return {"ok": False, "error": "Цей час вже зайнятий. Виберіть інший слот."}
     if not client_name or not client_phone:
-        return {"ok": False, "error": "Нужны имя и номер телефона клиента."}
+        return {"ok": False, "error": "Потрібні ім'я та номер телефону клієнта."}
 
     booking_id = db.add_booking(
         chat_id, name, start.isoformat(), end.isoformat(), client_name, client_phone
@@ -150,7 +150,7 @@ def create_booking(
     event_id = google_calendar.create_event(
         summary=f"{name} — {client_name}",
         description=(
-            f"Услуга: {name}\nКлиент: {client_name}\nТелефон: {client_phone}"
+            f"Послуга: {name}\nКлієнт: {client_name}\nТелефон: {client_phone}"
         ),
         start=start,
         end=end,
@@ -183,15 +183,15 @@ def cancel_booking(
         try:
             row = db.get_booking(int(booking_id), chat_id)
         except (TypeError, ValueError):
-            return {"ok": False, "error": "Некорректный id записи."}
+            return {"ok": False, "error": "Некоректний id запису."}
     elif date_str and time_str:
         day = parse_date(date_str)
         if day is None:
-            return {"ok": False, "error": "Не удалось распознать дату."}
+            return {"ok": False, "error": "Не вдалося розпізнати дату."}
         try:
             hh, mm = map(int, time_str.strip().split(":"))
         except ValueError:
-            return {"ok": False, "error": "Не удалось распознать время. Укажите ЧЧ:ММ."}
+            return {"ok": False, "error": "Не вдалося розпізнати час. Вкажіть ГГ:ХХ."}
         target_date = day.strftime("%Y-%m-%d")
         target_time = f"{hh:02d}:{mm:02d}"
         for b in db.get_upcoming_bookings(chat_id, "1970-01-01T00:00:00+00:00"):
@@ -211,11 +211,11 @@ def cancel_booking(
         if len(upcoming) == 1:
             row = upcoming[0]
         elif len(upcoming) == 0:
-            return {"ok": False, "error": "Активных записей нет."}
+            return {"ok": False, "error": "Активних записів немає."}
         else:
             return {
                 "ok": False,
-                "error": "Несколько записей. Уточните дату/время или id.",
+                "error": "Кілька записів. Уточніть дату/час або id.",
                 "bookings": [
                     {
                         "id": b["id"],
@@ -228,7 +228,7 @@ def cancel_booking(
             }
 
     if row is None:
-        return {"ok": False, "error": "Запись не найдена или уже отменена."}
+        return {"ok": False, "error": "Запис не знайдено або вже скасовано."}
 
     gcal_id = row.get("gcal_event_id")
     gcal_deleted = False
@@ -237,7 +237,7 @@ def cancel_booking(
 
     deleted = db.delete_booking(int(row["id"]), chat_id)
     if not deleted:
-        return {"ok": False, "error": "Не удалось удалить запись из базы."}
+        return {"ok": False, "error": "Не вдалося видалити запис з бази."}
 
     start = datetime.fromisoformat(row["start"])
     return {

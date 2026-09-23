@@ -80,9 +80,9 @@ def validate() -> None:
         missing.append("GOOGLE_API_KEY (если USE_GOOGLE_AI=true) или OPENAI_API_KEY")
     if missing:
         raise SystemExit(
-            "Не заданы обязательные переменные окружения: "
+            "Не задано обов'язкові змінні середовища: "
             + ", ".join(missing)
-            + ".\nСкопируйте .env.example в .env и заполните значения."
+            + ".\nСкопіюйте .env.example в .env і заповніть значення."
         )
 
 

@@ -74,7 +74,7 @@ def load_document(file_path: str | Path) -> str:
         doc = Document(str(path))
         return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
 
-    raise ValueError(f"Неподдерживаемый формат: {suffix}")
+    raise ValueError(f"Непідтримуваний формат: {suffix}")
 
 
 def split_into_chunks(

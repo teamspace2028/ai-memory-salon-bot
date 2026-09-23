@@ -31,17 +31,17 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "get_available_slots",
-            "description": "Получить список свободных слотов на указанный день для услуги.",
+            "description": "Отримати список вільних слотів на вказаний день для послуги.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "date": {
                         "type": "string",
-                        "description": "Дата: YYYY-MM-DD, 'сегодня' или 'завтра'.",
+                        "description": "Дата: YYYY-MM-DD, 'сьогодні' або 'завтра'.",
                     },
                     "service": {
                         "type": "string",
-                        "description": "Название услуги, например 'Мужская стрижка'.",
+                        "description": "Назва послуги, наприклад 'Чоловіча стрижка'.",
                     },
                 },
                 "required": ["date", "service"],
@@ -52,29 +52,29 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "create_booking",
-            "description": "Создать запись клиента на приём.",
+            "description": "Створити запис клієнта на прийом.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "date": {
                         "type": "string",
-                        "description": "Дата: YYYY-MM-DD, 'сегодня' или 'завтра'.",
+                        "description": "Дата: YYYY-MM-DD, 'сьогодні' або 'завтра'.",
                     },
                     "time": {
                         "type": "string",
-                        "description": "Время начала в формате ЧЧ:ММ.",
+                        "description": "Час початку у форматі ГГ:ХХ.",
                     },
                     "service": {
                         "type": "string",
-                        "description": "Название услуги.",
+                        "description": "Назва послуги.",
                     },
                     "client_name": {
                         "type": "string",
-                        "description": "Имя клиента.",
+                        "description": "Ім'я клієнта.",
                     },
                     "client_phone": {
                         "type": "string",
-                        "description": "Телефон клиента.",
+                        "description": "Телефон клієнта.",
                     },
                 },
                 "required": [
@@ -92,8 +92,8 @@ TOOLS = [
         "function": {
             "name": "get_my_bookings",
             "description": (
-                "Показать активные записи и сохранённые данные клиента "
-                "(имя, телефон) для текущего Telegram-чата."
+                "Показати активні записи та збережені дані клієнта "
+                "(ім'я, телефон) для поточного Telegram-чату."
             ),
             "parameters": {
                 "type": "object",
@@ -107,24 +107,24 @@ TOOLS = [
         "function": {
             "name": "cancel_booking",
             "description": (
-                "Отменить запись клиента. Удаляет из базы и из Google Calendar. "
-                "Можно передать booking_id или date+time. "
-                "Если у клиента одна запись — параметры можно не указывать."
+                "Скасувати запис клієнта. Видаляє з бази та з Google Calendar. "
+                "Можна передати booking_id або date+time. "
+                "Якщо у клієнта один запис — параметри можна не вказувати."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "booking_id": {
                         "type": "integer",
-                        "description": "Id записи из get_my_bookings.",
+                        "description": "Id запису з get_my_bookings.",
                     },
                     "date": {
                         "type": "string",
-                        "description": "Дата записи: YYYY-MM-DD, сегодня или завтра.",
+                        "description": "Дата запису: YYYY-MM-DD, сьогодні або завтра.",
                     },
                     "time": {
                         "type": "string",
-                        "description": "Время записи ЧЧ:ММ.",
+                        "description": "Час запису ГГ:ХХ.",
                     },
                 },
                 "required": [],
@@ -139,8 +139,8 @@ def load_base_instruction() -> str:
     if path.exists():
         return path.read_text(encoding="utf-8").strip()
     return (
-        f"Ты — виртуальный ассистент салона «{kb.SALON_NAME}». "
-        "Помогай записываться. Отвечай по-русски, вежливо и кратко."
+        f"Ти — віртуальний асистент салону «{kb.SALON_NAME}». "
+        "Допомагай записуватися. Відповідай українською мовою, ввічливо та коротко."
     )
 
 
@@ -160,35 +160,35 @@ def get_history(user_id: int) -> List[dict]:
 
 
 def _client_context(chat_id: int) -> str:
-    """Имя, телефон и активные записи клиента из БД."""
+    """Ім'я, телефон та активні записи клієнта з БД."""
     profile = db.get_client_profile(chat_id) or db.get_last_booking_contacts(chat_id)
     now_iso = datetime.now(config.TZ).isoformat()
     bookings = db.get_upcoming_bookings(chat_id, now_iso)
 
-    lines = ["ДАННЫЕ ЭТОГО КЛИЕНТА (из базы салона, можно использовать в ответах):"]
+    lines = ["ДАНИЕ ЦЬОГО КЛІЄНТА (з бази салону, можна використовувати у відповідях):" if False else "ДАНІ ЦЬОГО КЛІЄНТА (з бази салону, можна використовувати у відповідях):"]
     if profile and (profile.get("client_name") or profile.get("client_phone")):
         if profile.get("client_name"):
-            lines.append(f"- Имя: {profile['client_name']}")
+            lines.append(f"- Ім'я: {profile['client_name']}")
         if profile.get("client_phone"):
             lines.append(f"- Телефон: {profile['client_phone']}")
     else:
-        lines.append("- Имя и телефон ещё не сохранены.")
+        lines.append("- Ім'я та телефон ще не збережені.")
 
     if bookings:
-        lines.append("- Активные записи:")
+        lines.append("- Активні записи:")
         for b in bookings:
             start = datetime.fromisoformat(b["start"])
             lines.append(
                 f"  • {b['service']} — {start.strftime('%Y-%m-%d')} "
-                f"в {start.strftime('%H:%M')} (id={b['id']})"
+                f"о {start.strftime('%H:%M')} (id={b['id']})"
             )
     else:
-        lines.append("- Активных записей нет.")
+        lines.append("- Активних записів немає.")
 
     lines.append(
-        "Если спрашивают «как меня зовут», «мои данные», «мои записи» — "
-        "отвечай по этим данным или вызови get_my_bookings. "
-        "Не говори, что у тебя нет доступа к записям клиента."
+        "Якщо запитують «як мене звуть», «мої дані», «мої записи» — "
+        "відповідай за цими даними або виклич get_my_bookings. "
+        "Не кажи, що у тебе немає доступу до записів клієнта."
     )
     return "\n".join(lines)
 
@@ -198,32 +198,43 @@ def build_system_prompt(rag_context: str, chat_id: int) -> str:
     prompt = (
         f"{BASE_INSTRUCTION}\n\n"
         f"---\n"
-        f"АКТУАЛЬНО СЕЙЧАС\n"
-        f"Сегодня {now.strftime('%Y-%m-%d')}, время {now.strftime('%H:%M')} "
+        f"АКТУАЛЬНО ЗАРАЗ\n"
+        f"Сьогодні {now.strftime('%Y-%m-%d')}, час {now.strftime('%H:%M')} "
         f"({config.SALON_TIMEZONE}).\n"
         f"Салон «{kb.SALON_NAME}»: {kb.SALON_ADDRESS}, тел. {kb.SALON_PHONE}.\n"
-        f"Часы: {kb.OPEN_HOUR:02d}:00–{kb.CLOSE_HOUR:02d}:00, "
-        f"перерыв {kb.LUNCH_START_HOUR:02d}:00–{kb.LUNCH_END_HOUR:02d}:00.\n\n"
-        f"Услуги для записи (только эти):\n{kb.services_text()}\n\n"
+        f"Години: {kb.OPEN_HOUR:02d}:00–{kb.CLOSE_HOUR:02d}:00, "
+        f"перерва {kb.LUNCH_START_HOUR:02d}:00–{kb.LUNCH_END_HOUR:02d}:00.\n\n"
+        f"Послуги для запису (тільки ці):\n{kb.services_text()}\n\n"
         f"{_client_context(chat_id)}\n\n"
-        "ПРАВИЛА ЗАПИСИ (строго):\n"
-        "1) Чтобы показать свободное время — вызывай get_available_slots.\n"
-        "2) Перед create_booking обязательно узнай имя и телефон "
-        "(если они уже есть в данных клиента выше — можно использовать их, "
-        "спросив короткое подтверждение).\n"
-        "3) НИКОГДА не говори «вы записаны», пока create_booking не вернул ok=true.\n"
-        "4) НИКОГДА не говори «запись отменена», пока cancel_booking не вернул ok=true.\n"
-        "5) Если слот занят/перерыв — предложи ближайшие свободные.\n"
-        "6) Не выдумывай услуги и цены вне списка.\n"
-        "7) Вопросы про имя/телефон/записи клиента — смотри блок ДАННЫЕ ЭТОГО КЛИЕНТА "
-        "или вызывай get_my_bookings.\n"
-        "8) Для отмены записи всегда вызывай cancel_booking.\n"
-        "9) Клиент может прислать фото причёски/референс. Ты ВИДИШЬ изображение: "
-        "опиши стиль простыми словами, предложи подходящую услугу из каталога "
-        "и мягко предложи записаться. Не говори, что не можешь смотреть фото.\n"
+        "ПРАВИЛА ЗАПИСУ (суворо):\n"
+        "1) Щоб показати вільний час — викликай get_available_slots.\n"
+        "2) Перед create_booking обов'язково дізнайся ім'я та телефон "
+        "(якщо вони вже є в даних клієнта вище — можна використовувати їх, "
+        "запитавши коротке підтвердження).\n"
+        "3) НІКОЛИ не кажи «ви записані», поки create_booking не повернув ok=true.\n"
+        "4) НІКОЛИ не кажи «запис скасовано», поки cancel_booking не повернув ok=true.\n"
+        "5) Якщо слот зайнятий/перерва — запропонуй найближчі вільні.\n"
+        "6) Не вигадуй послуги та ціни поза списком.\n"
+        "7) Запитання про ім'я/телефон/записи клієнта — дивись блок ДАНІ ЦЬОГО КЛІЄНТА "
+        "або викликай get_my_bookings.\n"
+        "8) Для скасування запису завжди викликай cancel_booking.\n"
+        "9) Клієнт може надіслати фото зачіски/референс. Ти БАЧИШ зображення: "
+        "опиши стиль простими словами, запропонуй відповідну послугу з каталогу "
+        "та м'яко запропонуй записатися. Не кажи, що не можеш дивитися фото.\n"
+        "10) Після успішного виклику create_booking обов'язково підтверджуй запис, "
+        "використовуючи точний шаблон із бази знань:\n"
+        "«Запис підтверджено!\n"
+        "• Послуга: …\n"
+        "• Дата та час: …\n"
+        "• Майстер: …\n"
+        "• Клієнт: …\n"
+        "• Телефон: …\n"
+        "• Орієнтовна вартість: … грн\n\n"
+        "Нагадаємо SMS за день до візиту.\n"
+        "Якщо потрібно перенести або скасувати запис — напишіть сюди. Будемо раді бачити вас у салоні „Стрижка“!»\n"
     )
     if rag_context:
-        prompt += f"\nРелевантный контекст из памяти:\n{rag_context}\n"
+        prompt += f"\nРелевантний контекст з пам'яті:\n{rag_context}\n"
     return prompt
 
 
@@ -271,7 +282,7 @@ async def reply(
     )
     system_prompt = build_system_prompt(rag_context, chat_id)
 
-    history_text = user_text.strip() if user_text.strip() else "Клиент прислал фото."
+    history_text = user_text.strip() if user_text.strip() else "Клієнт надіслав фото."
     if image_bytes:
         history_text = f"[Фото] {history_text}"
     append_to_history(user_id, "user", history_text)
@@ -285,8 +296,8 @@ async def reply(
         b64 = base64.b64encode(image_bytes).decode("ascii")
         caption = (
             user_text.strip()
-            or "Посмотри фото. Опиши причёску/стиль и подскажи, какую услугу "
-            "из нашего салона подобрать. Если уместно — предложи записаться."
+            or "Подивись фото. Опиши зачіску/стиль і підкажи, яку послугу "
+            "з нашого салону підібрати. Якщо доречно — запропонуй записатися."
         )
         messages.append(
             {
@@ -319,7 +330,7 @@ async def reply(
         msg = response.choices[0].message
 
         if not msg.tool_calls:
-            answer = msg.content or "Извините, не расслышал. Повторите, пожалуйста."
+            answer = msg.content or "Вибачте, не почув. Повторіть, будь ласка."
             append_to_history(user_id, "assistant", answer)
             return answer, created, cancelled
 
@@ -340,7 +351,7 @@ async def reply(
                 }
             )
 
-    fallback = "Извините, не удалось обработать запрос. Попробуйте переформулировать."
+    fallback = "Вибачте, не вдалося обробити запит. Спробуйте переформулювати."
     append_to_history(user_id, "assistant", fallback)
     return fallback, created, cancelled
 

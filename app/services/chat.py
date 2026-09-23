@@ -30,8 +30,8 @@ async def ask_llm(
             image_mime=image_mime,
         )
     except Exception:  # noqa: BLE001
-        logger.exception("Ошибка OpenAI")
-        return "Извините, произошла техническая ошибка. Попробуйте ещё раз чуть позже."
+        logger.exception("Помилка OpenAI")
+        return "Вибачте, сталася технічна помилка. Спробуйте ще раз трохи згодом."
     if created:
         await notify_new_bookings(bot, created, client_chat_id=chat_id)
     if cancelled:

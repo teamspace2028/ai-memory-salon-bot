@@ -51,10 +51,10 @@ def create_event(
 ) -> str | None:
     if not is_enabled():
         logger.warning(
-            "Google Calendar выключен (GOOGLE_CALENDAR_ENABLED=false) — событие не создаём"
+            "Google Calendar вимкнено (GOOGLE_CALENDAR_ENABLED=false) — подію не створюємо"
         )
         return None
-    logger.info("Создаю событие Google Calendar: %s %s→%s", summary, start, end)
+    logger.info("Створюю подію Google Calendar: %s %s→%s", summary, start, end)
     try:
         service = _get_service()
         # dateTime без смещения + timeZone — Google сам считает локальное время салона
@@ -76,24 +76,24 @@ def create_event(
             .execute()
         )
         event_id = created.get("id")
-        logger.info("Google Calendar: событие создано id=%s", event_id)
+        logger.info("Google Calendar: подію створено id=%s", event_id)
         return event_id
     except Exception:  # noqa: BLE001
-        logger.exception("Не удалось создать событие в Google Calendar")
+        logger.exception("Не вдалося створити подію в Google Calendar")
         return None
 
 
 def delete_event(event_id: str) -> bool:
     if not is_enabled() or not event_id:
         return False
-    logger.info("Удаляю событие Google Calendar id=%s", event_id)
+    logger.info("Видаляю подію Google Calendar id=%s", event_id)
     try:
         service = _get_service()
         service.events().delete(
             calendarId=config.GOOGLE_CALENDAR_ID, eventId=event_id
         ).execute()
-        logger.info("Google Calendar: событие удалено id=%s", event_id)
+        logger.info("Google Calendar: подію видалено id=%s", event_id)
         return True
     except Exception:  # noqa: BLE001
-        logger.exception("Не удалось удалить событие из Google Calendar")
+        logger.exception("Не вдалося видалити подію з Google Calendar")
         return False

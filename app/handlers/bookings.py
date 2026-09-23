@@ -22,14 +22,14 @@ async def show_my_bookings(message: Message) -> None:
     now_iso = datetime.now(config.TZ).isoformat()
     rows = db.get_upcoming_bookings(chat_id, now_iso)
     if not rows:
-        await message.answer("У вас пока нет активных записей.")
+        await message.answer("У вас поки немає активних записів.")
         return
-    await message.answer("Ваши записи:")
+    await message.answer("Ваші записи:")
     for b in rows:
         start = datetime.fromisoformat(b["start"])
         text = (
             f"• {b['service']} — "
-            f"{start.strftime('%Y-%m-%d')} в {start.strftime('%H:%M')}"
+            f"{start.strftime('%Y-%m-%d')} о {start.strftime('%H:%M')}"
         )
         await message.answer(text, reply_markup=keyboards.cancel_inline(b["id"]))
 
@@ -45,11 +45,11 @@ async def on_service_chosen(callback: CallbackQuery) -> None:
     key = callback.data.split(":", 1)[1]
     service = kb.SERVICES.get(key)
     if service is None:
-        await callback.message.edit_text("Услуга не найдена. Попробуйте ещё раз.")
+        await callback.message.edit_text("Послугу не знайдено. Спробуйте ще раз.")
         return
 
     name = service[0]
-    await callback.message.edit_text(f"Записываю на «{name}».")
+    await callback.message.edit_text(f"Записую на «{name}».")
 
     if callback.from_user and callback.from_user.username:
         db.remember_user(callback.from_user.username, callback.message.chat.id)
@@ -58,7 +58,7 @@ async def on_service_chosen(callback: CallbackQuery) -> None:
         callback.bot,
         callback.from_user.id,
         callback.message.chat.id,
-        f"Хочу записаться на услугу «{name}».",
+        f"Хочу записатися на послугу «{name}».",
     )
     await callback.message.answer(answer)
 
@@ -70,7 +70,7 @@ async def on_cancel_booking(callback: CallbackQuery) -> None:
     booking_id = int(callback.data.split(":", 1)[1])
     row = db.get_booking(booking_id, chat_id)
     if row is None:
-        await callback.message.edit_text("Запись не найдена или уже отменена.")
+        await callback.message.edit_text("Запис не знайдено або вже скасовано.")
         return
 
     gcal_deleted = False
@@ -82,15 +82,15 @@ async def on_cancel_booking(callback: CallbackQuery) -> None:
 
     start = datetime.fromisoformat(row["start"])
     await callback.message.edit_text(
-        f"Запись отменена: {row['service']} — "
-        f"{start.strftime('%Y-%m-%d')} в {start.strftime('%H:%M')}."
+        f"Запис скасовано: {row['service']} — "
+        f"{start.strftime('%Y-%m-%d')} о {start.strftime('%H:%M')}."
     )
     text = (
-        "❌ Отмена записи!\n"
-        f"Услуга: {row['service']}\n"
-        f"Было: {start.strftime('%Y-%m-%d')} в {start.strftime('%H:%M')}\n"
-        f"Клиент: {row.get('client_name')}"
+        "❌ Скасування запису!\n"
+        f"Послуга: {row['service']}\n"
+        f"Було: {start.strftime('%Y-%m-%d')} о {start.strftime('%H:%M')}\n"
+        f"Клієнт: {row.get('client_name')}"
     )
     if gcal_deleted:
-        text += "\n📅 Удалено из Google Calendar"
+        text += "\n📅 Видалено з Google Calendar"
     await notify_admins(callback.bot, text, exclude_chat_id=chat_id)

@@ -22,7 +22,7 @@ async def handle_text(message: Message) -> None:
         return
 
     if text.startswith("/"):
-        await message.answer("Неизвестная команда. Воспользуйтесь /help.")
+        await message.answer("Невідома команда. Скористайтеся /help.")
         return
 
     if text == keyboards.BTN_HOURS:
@@ -32,14 +32,14 @@ async def handle_text(message: Message) -> None:
         await message.answer(kb.contacts_text())
         return
     if text == keyboards.BTN_SERVICES:
-        await message.answer("Наши услуги:\n" + kb.services_text())
+        await message.answer("Наші послуги:\n" + kb.services_text())
         return
     if text == keyboards.BTN_MY_BOOKINGS:
         await show_my_bookings(message)
         return
     if text == keyboards.BTN_BOOK:
         await message.answer(
-            "Выберите услугу для записи:",
+            "Оберіть послугу для запису:",
             reply_markup=keyboards.services_inline(),
         )
         return

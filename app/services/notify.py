@@ -29,7 +29,7 @@ def resolve_admin_chat_ids(exclude_chat_id: int | None = None) -> set[int]:
             ids.add(cid)
         else:
             logger.warning(
-                "Админ @%s ещё не нажимал /start у бота — уведомление не дойдёт",
+                "Адмін @%s ще не натискав /start у бота — сповіщення не дійде",
                 username,
             )
     if exclude_chat_id is not None:
@@ -44,26 +44,26 @@ async def notify_admins(
 ) -> None:
     admin_ids = resolve_admin_chat_ids(exclude_chat_id=exclude_chat_id)
     if not admin_ids:
-        logger.warning("Нет админов для уведомления (ADMIN_ACCOUNTS / /start)")
+        logger.warning("Немає адмінів для сповіщення (ADMIN_ACCOUNTS / /start)")
         return
     for cid in admin_ids:
         try:
             await bot.send_message(chat_id=cid, text=text)
         except Exception:  # noqa: BLE001
-            logger.exception("Не удалось отправить уведомление админу %s", cid)
+            logger.exception("Не вдалося надіслати сповіщення адміну %s", cid)
 
 
 async def notify_new_bookings(bot: Bot, bookings: list, client_chat_id: int) -> None:
     for b in bookings:
         text = (
-            "🔔 Новая запись!\n"
-            f"Услуга: {b['service']}\n"
-            f"Дата: {b['date']} в {b['time']}\n"
-            f"Клиент: {b['client_name']}\n"
+            "🔔 Новий запис!\n"
+            f"Послуга: {b['service']}\n"
+            f"Дата: {b['date']} о {b['time']}\n"
+            f"Клієнт: {b['client_name']}\n"
             f"Телефон: {b['client_phone']}"
         )
         if b.get("gcal_synced"):
-            text += "\n📅 Добавлено в Google Calendar"
+            text += "\n📅 Додано до Google Calendar"
         await notify_admins(bot, text, exclude_chat_id=client_chat_id)
 
 
@@ -74,11 +74,11 @@ async def notify_cancelled_bookings(
 ) -> None:
     for b in bookings:
         text = (
-            "❌ Отмена записи!\n"
-            f"Услуга: {b['service']}\n"
-            f"Было: {b['date']} в {b['time']}\n"
-            f"Клиент: {b.get('client_name')}"
+            "❌ Скасування запису!\n"
+            f"Послуга: {b['service']}\n"
+            f"Було: {b['date']} о {b['time']}\n"
+            f"Клієнт: {b.get('client_name')}"
         )
         if b.get("gcal_deleted"):
-            text += "\n📅 Удалено из Google Calendar"
+            text += "\n📅 Видалено з Google Calendar"
         await notify_admins(bot, text, exclude_chat_id=client_chat_id)
